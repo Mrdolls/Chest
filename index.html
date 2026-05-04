@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Loterie de mon Bot</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *;">
     <link rel="icon" href="data:,">
     <style>
         body { margin: 0; overflow: hidden; background: #000010; }
@@ -112,6 +113,35 @@
             letter-spacing: 2px;
         }
         #recuperer-button:hover { transform: translateX(-50%) scale(1.1); box-shadow: 0 0 30px rgba(0, 255, 136, 0.6); }
+
+        /* HUD - Compteurs */
+        #hud {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1001;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: 100px;
+        }
+        .stat-icon { font-size: 18px; }
+        .stat-value { font-size: 16px; color: #ffd700; }
+        .stat-label { font-size: 12px; color: #aaa; text-transform: uppercase; margin-right: auto; }
     </style>
     <script type="importmap">
         {
@@ -124,6 +154,19 @@
     </script>
 </head>
 <body>
+    <div id="hud">
+        <div class="stat-item" id="lunar-keys-stat">
+            <span class="stat-icon">🔑</span>
+            <span class="stat-label">Clefs Lunaires</span>
+            <span class="stat-value" id="lunar-keys-count">0</span>
+        </div>
+        <div class="stat-item" id="eclats-stat">
+            <span class="stat-icon">✨</span>
+            <span class="stat-label">Éclats</span>
+            <span class="stat-value" id="eclats-count">0</span>
+        </div>
+    </div>
+
     <div id="selection-menu">
         <h2>Coffres</h2>
         <div class="menu-item active" id="item-classic">
@@ -137,6 +180,53 @@
     </div>
 
     <button id="recuperer-button">Récupérer</button>
+
+<script>
+    // --- CONNEXION BACKEND ---
+    const API_URL = "http://localhost:5000/api";
+    let currentUserId = "123456789"; // ID de test par défaut
+
+    async function fetchUserData(userId) {
+        try {
+            const response = await fetch(`${API_URL}/profile/${userId}`);
+            const result = await response.json();
+            if (result.status === "success") {
+                const data = result.data;
+                document.getElementById('lunar-keys-count').innerText = data.lunar_keys || 0;
+                document.getElementById('eclats-count').innerText = data.eclats || 0;
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération des données:", error);
+        }
+    }
+
+    // Charger les données au démarrage
+    window.addEventListener('DOMContentLoaded', () => {
+        // 1. Vérifier si l'ID est dans l'URL (retour de callback)
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = urlParams.get('user_id');
+
+        // 2. Si non, vérifier dans le localStorage
+        if (!userId) {
+            userId = localStorage.getItem('discord_user_id');
+        }
+
+        // 3. Si on a toujours rien, redirection vers login.html
+        if (!userId) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // 4. On sauvegarde l'ID pour la prochaine fois et on nettoie l'URL
+        localStorage.setItem('discord_user_id', userId);
+        if (urlParams.has('user_id')) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        currentUserId = userId;
+        fetchUserData(currentUserId);
+    });
+</script>
 
 <script type="module">
     import * as THREE from 'three';

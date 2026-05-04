@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Loterie Lunaire</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *;">
+    <style>
+        :root {
+            --primary: #5865F2; /* Discord Blue */
+            --primary-hover: #4752C4;
+            --bg: #0a0b10;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Fond animé (Étoiles/Particules) */
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .login-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            font-size: 60px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 15px rgba(88, 101, 242, 0.5));
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            background: linear-gradient(to bottom, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .btn-discord {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn-discord:hover {
+            background: var(--primary-hover);
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(88, 101, 242, 0.3);
+        }
+
+        .btn-discord svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="login-card">
+        <div class="logo">🌙</div>
+        <h1>Loterie Lunaire</h1>
+        <p>Connectez-vous avec Discord pour accéder à votre inventaire et ouvrir vos coffres.</p>
+        
+        <a href="http://localhost:5000/api/login" class="btn-discord">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36">
+                <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.48,80.1a105.73,105.73,0,0,0,32.2,16.26,77.7,77.7,0,0,0,7.12-11.59,64.8,64.8,0,0,1-11.35-5.41c.96-.69,1.91-1.42,2.83-2.17a74.58,74.58,0,0,0,64.2,0c.92.75,1.88,1.48,2.83,2.17a64.54,64.54,0,0,1-11.35,5.41,77.66,77.66,0,0,0,7.12,11.59,105.09,105.09,0,0,0,32.23-16.26C130.58,52.34,121.2,28.75,107.7,8.07ZM42.45,65.69c-6.22,0-11.41-5.71-11.41-12.7s5.07-12.7,11.41-12.7,11.54,5.71,11.54,12.7S48.79,65.69,42.45,65.69Zm42.24,0c-6.22,0-11.41-5.71-11.41-12.7s5.07-12.7,11.41-12.7,11.54,5.71,11.54,12.7S91,65.69,84.69,65.69Z"/>
+            </svg>
+            Se connecter
+        </a>
+
+        <div class="footer">Édition Lunaire</div>
+    </div>
+
+    <script>
+        // Simple animation de fond
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function init() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for(let i=0; i<100; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2,
+                    speed: Math.random() * 0.5
+                });
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                ctx.fill();
+                p.y -= p.speed;
+                if(p.y < 0) p.y = canvas.height;
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', init);
+        init();
+        animate();
+    </script>
+</body>
+</html>
