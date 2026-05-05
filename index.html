@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Loterie de mon Bot</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *;">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * data: blob:;">
     <link rel="icon" href="data:,">
     <style>
         body { margin: 0; overflow: hidden; background: #000010; }
@@ -56,37 +56,109 @@
         .rarity { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         #start-button {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            padding: 15px;
+            background: #ffaa00;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             color: #000;
-            font-weight: 700;
-            font-size: 14px;
+            font-weight: 800;
+            font-size: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        #start-button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); filter: brightness(1.1); }
-        #start-button:active { transform: translateY(0); }
 
         #start-button-x10 {
             margin-top: 10px;
             width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            background: #ffaa00;
+            border: none;
             border-radius: 12px;
-            color: #ccc;
-            font-weight: bold;
-            font-size: 14px;
+            color: #000;
+            font-weight: 800;
+            font-size: 16px;
             cursor: pointer;
             transition: 0.3s;
             text-transform: uppercase;
         }
-        #start-button-x10:hover { background: rgba(255, 255, 255, 0.2); color: white; border-color: rgba(255, 255, 255, 0.4); }
-        #start-button-x10:active { transform: scale(0.98); }
+        #start-button:hover, #start-button-x10:hover { background: #ffcc00; transform: scale(1.02); }
+        #start-button:active, #start-button-x10:active { transform: scale(0.98); }
+
+        .btn-icon {
+            width: 18px;
+            height: 18px;
+            filter: brightness(0);
+        }
+
+        /* Mise en page interne des boutons */
+        .btn-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .btn-price {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* Animation de tremblement (erreur) */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .btn-error {
+            background: #ff4444 !important;
+            animation: shake 0.2s ease-in-out 0s 2;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.5) !important;
+        }
+
+        /* Écran de récapitulatif */
+        #recap-screen {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 300px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            animation: recapPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes recapPop {
+            from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        #recap-screen h2 { color: #ffd700; margin: 0; font-size: 24px; }
+        .recap-item { font-size: 20px; color: white; font-weight: bold; }
+        .recap-xp { color: #00ffcc; }
+        .recap-keys { color: #ffd700; }
+        #recap-back-btn {
+            background: linear-gradient(135deg, #ffd700, #ff9000);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            color: black;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        #recap-back-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
 
         /* Animation de sortie du menu */
         .fade-out { opacity: 0; transform: translate(-50%, -60%); pointer-events: none; transition: 0.5s ease; }
@@ -139,9 +211,46 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             min-width: 100px;
         }
-        .stat-icon { font-size: 18px; }
-        .stat-value { font-size: 16px; color: #ffd700; }
-        .stat-label { font-size: 12px; color: #aaa; text-transform: uppercase; margin-right: auto; }
+        .stat-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 15px; 
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 120px;
+            position: relative;
+        }
+        .stat-value { 
+            font-size: 18px; 
+            font-weight: 900; 
+            flex-grow: 1;
+            text-align: center;
+            margin-left: 24px; /* Pour compenser la largeur de l'icône et rester centré */
+        }
+        .hud-icon { 
+            width: 24px; 
+            height: 24px; 
+            object-fit: contain; 
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+        }
+        
+        #logout-btn {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #ff8888;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-size: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+            margin-top: 5px;
+            align-self: flex-end;
+        }
+        #logout-btn:hover { background: rgba(255, 0, 0, 0.4); color: white; }
     </style>
     <script type="importmap">
         {
@@ -155,16 +264,16 @@
 </head>
 <body>
     <div id="hud">
-        <div class="stat-item" id="lunar-keys-stat">
-            <span class="stat-icon">🔑</span>
-            <span class="stat-label">Clefs Lunaires</span>
+        <div class="stat-item">
             <span class="stat-value" id="lunar-keys-count">0</span>
+            <img src="textures/lunar_key.png" class="hud-icon" title="Clefs Lunaires">
         </div>
-        <div class="stat-item" id="eclats-stat">
-            <span class="stat-icon">✨</span>
-            <span class="stat-label">Éclats</span>
+        <div class="stat-item">
             <span class="stat-value" id="eclats-count">0</span>
+            <img src="textures/lunar_fragments.png" class="hud-icon" title="Éclats de Lune">
         </div>
+        <button id="logout-btn">Déconnexion</button>
+    </div>
     </div>
 
     <div id="selection-menu">
@@ -175,18 +284,52 @@
                 <span class="rarity">Commun</span>
             </div>
         </div>
-        <button id="start-button">Ouvrir</button>
-        <button id="start-button-x10">Ouvrir *10</button>
+        <button id="start-button" type="button">
+            <div class="btn-content">
+                <span>Ouvrir</span>
+                <div class="btn-price">
+                    <span>x1</span>
+                    <img src="textures/lunar_key.png" class="btn-icon">
+                </div>
+            </div>
+        </button>
+        <button id="start-button-x10" type="button">
+            <div class="btn-content">
+                <span>Ouvrir</span>
+                <div class="btn-price">
+                    <span>x10</span>
+                    <img src="textures/lunar_key.png" class="btn-icon">
+                </div>
+            </div>
+        </button>
+    </div>
+
+    <div id="recap-screen">
+        <h2>RÉCOMPENSES</h2>
+        <div class="recap-item recap-xp">+ <span id="recap-xp-val">0</span> XP</div>
+        <div id="recap-keys-container" class="recap-item recap-keys">+ <span id="recap-keys-val">0</span> Clefs</div>
+        <button id="recap-back-btn">REVENIR AU MENU</button>
     </div>
 
     <button id="recuperer-button">Récupérer</button>
 
 <script>
-    // --- CONNEXION BACKEND ---
+    console.log("🚀 [DEBUG] Page chargée / redémarrée à :", new Date().toLocaleTimeString());
+    
+    // --- ÉTAT GLOBAL ---
     const API_URL = "http://localhost:5000/api";
-    let currentUserId = "123456789"; // ID de test par défaut
+    let currentUserId = null;
+    let errorTimeout = null;
+    let loterieDemaree = false;
+    let loterieEnCoursDeLancement = false;
 
     async function fetchUserData(userId) {
+        // SÉCURITÉ : On ne met JAMAIS à jour le profil si une loterie se lance ou est en cours
+        if (loterieDemaree || loterieEnCoursDeLancement) {
+            console.log("🛡️ [DEBUG] Mise à jour du profil bloquée (Loterie en cours)");
+            return;
+        }
+
         try {
             const response = await fetch(`${API_URL}/profile/${userId}`);
             const result = await response.json();
@@ -225,6 +368,11 @@
 
         currentUserId = userId;
         fetchUserData(currentUserId);
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        localStorage.removeItem('discord_user_id');
+        window.location.href = 'login.html';
     });
 </script>
 
@@ -632,7 +780,7 @@
             lightPosition: { value: new THREE.Vector2(0.5, 0.5) },
             exposure:      { value: 0.0 },
             decay:         { value: 0.85 },
-            density:       { value: 0.80 },
+            density:         { value: 0.80 },
             // Rayons très subtils — le shader amplifie les pixels brillants du mesh
             weight:        { value: 0.005 },
         },
@@ -685,7 +833,6 @@
     let mixers = [];
     let coffreData = []; // Stocke { model, mixer, rarity, lights }
     let coffreEstOuvert = false;
-    let loterieDemaree = false;
     let dejaRecupere = false;
     let isIdle = true;
     let godRaysIntensity = 0;
@@ -824,38 +971,94 @@
     const startBtnX10 = document.getElementById('start-button-x10');
     const menu = document.getElementById('selection-menu');
 
-    function demarrerLoterie(modeX10) {
+    async function demarrerLoterie(modeX10) {
         if (!originalGltf) return;
-        isIdle = false;
-        isMulti = modeX10;
-        pretAOpen = false;
-        coffresPrets = 0;
-        controls.enabled = false;
 
-        const isPortrait = window.innerHeight > window.innerWidth;
-
-        // Caméra adaptative selon l'orientation
-        let targetZ, targetY;
-        if (isMulti) {
-            targetZ = isPortrait ? 8.0 : 4.0;
-            targetY = isPortrait ? 5.0 : 2.8;
-        } else {
-            targetZ = isPortrait ? 3.5 : 2.2;
-            targetY = isPortrait ? 0.8 : 0.4;
+        const count = modeX10 ? MULTI_CHEST_COUNT : 1;
+        let isGodPack = false;
+        let chestResults = [];
+        
+        // --- VÉRIFICATION LOCALE INSTANTANÉE ---
+        const displayedKeys = parseInt(document.getElementById('lunar-keys-count').innerText) || 0;
+        if (displayedKeys < count) {
+            const clickedBtn = modeX10 ? startBtnX10 : startBtn;
+            clickedBtn.classList.add('btn-error');
+            setTimeout(() => {
+                clickedBtn.classList.remove('btn-error');
+                loterieEnCoursDeLancement = false;
+                startBtn.style.pointerEvents = "auto";
+                startBtnX10.style.pointerEvents = "auto";
+                startBtn.style.opacity = "1";
+                startBtnX10.style.opacity = "1";
+            }, 400);
+            return;
         }
 
-        new TWEEN.Tween(camera.position)
-            .to({ x: 0, y: targetY, z: targetZ }, 2500)
-            .easing(TWEEN.Easing.Quadratic.InOut)
-            .onUpdate(() => camera.lookAt(0, -0.4, 0))
-            .onComplete(() => { controls.enabled = true; controls.update(); })
-            .start();
+        // --- APPEL API POUR CONSOMMER LES CLEFS ---
+        try {
+            const response = await fetch(`${API_URL}/use_keys`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: currentUserId, amount: count })
+            });
+            const result = await response.json();
 
-        const count = isMulti ? MULTI_CHEST_COUNT : 1;
+            if (result.status !== "success") {
+                // On récupère le bouton qui a été cliqué
+                const clickedBtn = modeX10 ? startBtnX10 : startBtn;
+                clickedBtn.classList.add('btn-error');
+                
+                // On retire la classe après l'animation (400ms)
+                setTimeout(() => {
+                    clickedBtn.classList.remove('btn-error');
+                    loterieEnCoursDeLancement = false;
+                    startBtn.style.pointerEvents = "auto";
+                    startBtnX10.style.pointerEvents = "auto";
+                    startBtn.style.opacity = "1";
+                    startBtnX10.style.opacity = "1";
+                }, 400);
+                
+                return;
+            }
 
-        // Tirage du God Pack selon la constante GOD_PACK_CHANCE
-        const isGodPack = isMulti && (Math.random() < GOD_PACK_CHANCE);
-        window.currentIsGodPack = isGodPack; // Stockage global pour creerUnCoffre
+            // On stocke la nouvelle balance (on ne l'affiche pas encore pour le suspense)
+            window.nextBalance = result.new_balance;
+
+            // --- NOUVEAU: On récupère les résultats du serveur ---
+            isGodPack = result.is_god_pack;
+            chestResults = result.chest_results;
+            
+            // Stockage pour l'affichage final
+            window.lastLoot = {
+                xp: result.total_xp,
+                bonus_keys: result.bonus_keys
+            };
+
+            // On lance la suite
+            isIdle = false;
+            isMulti = modeX10;
+            pretAOpen = false;
+            coffresPrets = 0;
+            controls.enabled = false;
+
+            const isPortrait = window.innerHeight > window.innerWidth;
+            let targetZ, targetY;
+            if (isMulti) {
+                targetZ = isPortrait ? 8.0 : 4.0;
+                targetY = isPortrait ? 5.0 : 2.8;
+            } else {
+                targetZ = isPortrait ? 3.5 : 2.2;
+                targetY = isPortrait ? 0.8 : 0.4;
+            }
+
+            new TWEEN.Tween(camera.position)
+                .to({ x: 0, y: targetY, z: targetZ }, 2500)
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .onUpdate(() => camera.lookAt(0, -0.4, 0))
+                .onComplete(() => { controls.enabled = true; controls.update(); })
+                .start();
+
+            window.currentIsGodPack = isGodPack;
 
         // Effet sur les étoiles et le sol
         if (isGodPack) {
@@ -875,11 +1078,13 @@
             gridUniforms.gridColor.value.setHex(0xC4BAFF);
         }
 
-        // 1. Pré-tirage et Tri des raretés AVANT la chute
-        const preRolledRarities = [];
-        for (let i = 0; i < count; i++) {
-            preRolledRarities.push(tirerRarite(isGodPack ? godRarities : rarities));
-        }
+        // 1. On utilise les raretés du serveur
+        const preRolledRarities = chestResults.map(res => {
+            const r = (isGodPack ? godRarities : rarities).find(r => r.id === res.rarity);
+            return r || rarities[0];
+        });
+
+        // On trie pour l'effet visuel (du commun au plus rare)
         preRolledRarities.sort((a, b) => {
             const idxA = rarities.findIndex(r => r.id === a.id);
             const idxB = rarities.findIndex(r => r.id === b.id);
@@ -922,16 +1127,68 @@
 
         loterieDemaree = true;
         menu.classList.add('fade-out');
-    }
 
-    startBtn.addEventListener('click', () => demarrerLoterie(false));
-    startBtnX10.addEventListener('click', () => demarrerLoterie(true));
+    } catch (error) {
+        console.error("Erreur lors de la consommation des clefs:", error);
+        alert("❌ Erreur de connexion au serveur.");
+    }
+}
+
+    startBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log("🖱️ [DEBUG] Clic sur X1 détecté");
+        if (loterieEnCoursDeLancement) return;
+        
+        if (errorTimeout) clearTimeout(errorTimeout);
+
+        loterieEnCoursDeLancement = true;
+        demarrerLoterie(false);
+    });
+    startBtnX10.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log("🖱️ [DEBUG] Clic sur X10 détecté");
+        if (loterieEnCoursDeLancement) return;
+
+        if (errorTimeout) clearTimeout(errorTimeout);
+
+        loterieEnCoursDeLancement = true;
+        demarrerLoterie(true);
+    });
 
     const recupererBtn = document.getElementById('recuperer-button');
     recupererBtn.addEventListener('click', () => {
         recupererBtn.style.display = 'none';
         coffreEstOuvert = false;
         dejaRecupere = true;
+        loterieEnCoursDeLancement = false;
+        loterieDemaree = false;
+        
+        // Mise à jour du HUD seulement ici (suspense !)
+        if (window.nextBalance !== undefined) {
+            // On appelle l'API pour valider les gains
+            fetch(`${API_URL}/claim_loot`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: currentUserId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    document.getElementById('lunar-keys-count').innerText = data.new_balance;
+                    
+                    // Affichage du récapitulatif
+                    const recap = document.getElementById('recap-screen');
+                    document.getElementById('recap-xp-val').innerText = window.lastLoot.xp;
+                    document.getElementById('recap-keys-val').innerText = window.lastLoot.bonus_keys;
+                    
+                    // On cache les clefs si on n'en a pas gagné
+                    document.getElementById('recap-keys-container').style.display = window.lastLoot.bonus_keys > 0 ? "block" : "none";
+                    
+                    recap.style.display = "flex";
+                }
+            });
+        }
+
         godRaysIntensity = 0;
         godRaysPass.enabled = false;
 
@@ -984,7 +1241,7 @@
         });
 
         if (isIdle) {
-            const t = clock.getElapsedTime() * 0.1;
+            const t = clock.getElapsedTime() * 0.04;
             camera.position.x = Math.sin(t) * 3.5;
             camera.position.z = Math.cos(t) * 3.5;
             camera.position.y = 1 + Math.sin(t * 0.5) * 0.5;
@@ -1116,13 +1373,42 @@
         }
     });
 
-    // ── 11. REDIMENSIONNEMENT ────────────────────────────────────────────
+    // ── 11. BOUTON RETOUR DU RÉCAPITULATIF ───────────────────────────────
+    document.getElementById('recap-back-btn').addEventListener('click', () => {
+        document.getElementById('recap-screen').style.display = "none";
+        
+        // Reset de la scène
+        coffreData.forEach(c => scene.remove(c.model));
+        coffreData = [];
+        mixers = [];
+        
+        // Réinitialisation interface
+        dejaRecupere = false;
+        menu.classList.remove('fade-out');
+        
+        // Caméra retour
+        new TWEEN.Tween(camera.position)
+            .to({ x: 0, y: 1.0, z: 3.5 }, 1500)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onComplete(() => {
+                isIdle = true; // On ne relance le mouvement auto qu'une fois arrivé !
+            })
+            .start();
+    });
+
+    // ── 12. REDIMENSIONNEMENT ────────────────────────────────────────────
     window.addEventListener('resize', () => {
         camera.aspect = innerWidth / innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(innerWidth, innerHeight);
         composer.setSize(innerWidth, innerHeight);
     });
+    // Scan automatique des clefs toutes les 10 secondes (sauf si une loterie est en cours ou se lance)
+    setInterval(() => {
+        if (currentUserId && !loterieDemaree && !loterieEnCoursDeLancement) {
+            fetchUserData(currentUserId);
+        }
+    }, 10000);
 </script>
 </body>
 </html>

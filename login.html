@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - Loterie Lunaire</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *;">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * data: blob:;">
     <style>
         :root {
             --primary: #5865F2; /* Discord Blue */
@@ -137,6 +137,11 @@
     </div>
 
     <script>
+        // Si on est déjà connecté, on va direct à la loterie
+        if (localStorage.getItem('discord_user_id')) {
+            window.location.href = 'index.html';
+        }
+
         // Simple animation de fond
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
